@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User who signed up for the course
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  firstName     String?
+  lastName      String?
+  accessToken   String   @unique  // Personalized link token for video access
+  videoAccessed Boolean  @default(false)  // Has user watched the free video?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  groups        UserGroup[]
+  emailStats    EmailRecipient[]
+
+  @@index([email])
+  @@index([accessToken])
+}
+
+// Email groups (e.g., "All Users", "New Signups", "Engaged Users")
+model Group {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users       UserGroup[]
+  emails      EmailToGroup[]
+
+  @@index([name])
+}
+
+// Many-to-many relationship between Users and Groups
+model UserGroup {
+  userId    String
+  groupId   String
+  addedAt   DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([userId, groupId])
+  @@index([userId])
+  @@index([groupId])
+}
+
+// Email campaigns sent
+model EmailCampaign {
+  id          String   @id @default(cuid())
+  subject     String
+  htmlContent String   @db.Text
+  textContent String   @db.Text
+  sentAt      DateTime @default(now())
+  sentBy      String   // Admin user who sent it
+
+  // Stats (calculated)
+  totalRecipients Int      @default(0)
+  delivered       Int      @default(0)
+  opened          Int      @default(0)
+  clicked         Int      @default(0)
+
+  // Relations
+  groups      EmailToGroup[]
+  recipients  EmailRecipient[]
+
+  @@index([sentAt])
+}
+
+// Many-to-many relationship between Emails and Groups
+model EmailToGroup {
+  campaignId String
+  groupId    String
+
+  campaign   EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  group      Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([campaignId, groupId])
+  @@index([campaignId])
+  @@index([groupId])
+}
+
+// Individual email tracking (one per user per campaign)
+model EmailRecipient {
+  id           String   @id @default(cuid())
+  userId       String
+  campaignId   String
+  trackingId   String   @unique  // For tracking pixel and links
+
+  // Status
+  delivered    Boolean  @default(false)
+  deliveredAt  DateTime?
+  opened       Boolean  @default(false)
+  openedAt     DateTime?
+  clicked      Boolean  @default(false)
+  clickedAt    DateTime?
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign     EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  clicks       EmailClick[]
+
+  @@unique([userId, campaignId])
+  @@index([userId])
+  @@index([campaignId])
+  @@index([trackingId])
+}
+
+// Track individual link clicks within emails
+model EmailClick {
+  id           String   @id @default(cuid())
+  recipientId  String
+  url          String   @db.Text
+  clickedAt    DateTime @default(now())
+
+  // Relations
+  recipient    EmailRecipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId])
+  @@index([clickedAt])
+}
+
+// Admin users for accessing the dashboard
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String   // Hashed with bcrypt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}

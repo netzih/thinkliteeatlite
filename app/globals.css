@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 157 12% 18%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 157 12% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 157 12% 18%;
+
+    --primary: 157 35% 27%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 159 33% 69%;
+    --secondary-foreground: 157 12% 18%;
+
+    --muted: 159 33% 95%;
+    --muted-foreground: 157 12% 45%;
+
+    --accent: 63 71% 54%;
+    --accent-foreground: 157 12% 18%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 159 20% 90%;
+    --input: 159 20% 90%;
+    --ring: 157 35% 27%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom brand styles */
+.brand-gradient {
+  background: linear-gradient(135deg, #2D5D4F 0%, #5A8A7A 100%);
+}
+
+.brand-sage-gradient {
+  background: linear-gradient(135deg, #9BCBBB 0%, #5A8A7A 100%);
+}
+
+.brand-lime-accent {
+  background-color: #D4DD3C;
+  color: #2C2D2C;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #5A8A7A;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2D5D4F;
+}
