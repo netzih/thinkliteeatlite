@@ -12,7 +12,36 @@ echo ""
 # Colors for output
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
+
+# Detect Plesk Node.js installation
+# Try to find npm in Plesk's Node.js directories
+if [ -d "/opt/plesk/node" ]; then
+    # Find the latest Node.js version installed
+    LATEST_NODE=$(ls -1 /opt/plesk/node/ | grep -E '^[0-9]+$' | sort -rn | head -1)
+    if [ -n "$LATEST_NODE" ]; then
+        NODE_PATH="/opt/plesk/node/${LATEST_NODE}/bin"
+        NPM="${NODE_PATH}/npm"
+        NPX="${NODE_PATH}/npx"
+        NODE="${NODE_PATH}/node"
+        echo -e "${GREEN}✓${NC} Found Plesk Node.js ${LATEST_NODE} at ${NODE_PATH}"
+    else
+        echo -e "${RED}✗${NC} No Node.js version found in /opt/plesk/node/"
+        echo "Available versions:"
+        ls -1 /opt/plesk/node/ || echo "None found"
+        exit 1
+    fi
+else
+    # Fall back to system npm if Plesk directory doesn't exist
+    echo -e "${YELLOW}⚠️  Plesk Node.js directory not found, using system npm${NC}"
+    NPM="npm"
+    NPX="npx"
+    NODE="node"
+fi
+
+echo "Using: $NPM"
+echo ""
 
 # Check if .env exists
 if [ ! -f .env ]; then
@@ -35,25 +64,25 @@ echo ""
 
 # Install dependencies
 echo "📦 Installing dependencies..."
-npm install
+$NPM install
 echo -e "${GREEN}✓${NC} Dependencies installed"
 echo ""
 
 # Generate Prisma Client
 echo "🔧 Generating Prisma Client..."
-npx prisma generate
+$NPX prisma generate
 echo -e "${GREEN}✓${NC} Prisma Client generated"
 echo ""
 
 # Push database schema
 echo "🗄️  Setting up database..."
-npx prisma db push
+$NPX prisma db push
 echo -e "${GREEN}✓${NC} Database schema created"
 echo ""
 
 # Build Next.js app
 echo "🏗️  Building Next.js application..."
-npm run build
+$NPM run build
 echo -e "${GREEN}✓${NC} Build complete"
 echo ""
 
