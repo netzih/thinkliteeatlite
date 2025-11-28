@@ -4,8 +4,8 @@
  */
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { CheckCircle2, Play, TrendingDown, Heart, Sparkles } from "lucide-react"
+import { CheckCircle2, TrendingDown, Heart, Sparkles } from "lucide-react"
+import { SignupForm } from "@/components/signup-form"
 
 export default function LandingPage() {
   return (
@@ -54,45 +54,8 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              {/* Signup Form - We'll make this functional next */}
-              <form className="space-y-4">
-                <div>
-                  <Input
-                    type="text"
-                    placeholder="First Name"
-                    className="w-full"
-                    required
-                  />
-                </div>
-                <div>
-                  <Input
-                    type="text"
-                    placeholder="Last Name"
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <Input
-                    type="email"
-                    placeholder="Email Address"
-                    className="w-full"
-                    required
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  variant="accent"
-                  size="xl"
-                  className="w-full"
-                >
-                  <Play className="mr-2 h-5 w-5" />
-                  Get My Free Course
-                </Button>
-              </form>
-
-              <p className="text-xs text-gray-500 mt-4 text-center">
-                No credit card required. Instant access to your course.
-              </p>
+              {/* Functional Signup Form */}
+              <SignupForm />
             </div>
 
             {/* Social Proof / Trust Indicators */}
