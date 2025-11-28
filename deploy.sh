@@ -25,7 +25,13 @@ if [ -d "/opt/plesk/node" ]; then
         NPM="${NODE_PATH}/npm"
         NPX="${NODE_PATH}/npx"
         NODE="${NODE_PATH}/node"
+
+        # Add to PATH so npm scripts can find node
+        export PATH="${NODE_PATH}:$PATH"
+
         echo -e "${GREEN}✓${NC} Found Plesk Node.js ${LATEST_NODE} at ${NODE_PATH}"
+        echo "Node version: $($NODE --version)"
+        echo "NPM version: $($NPM --version)"
     else
         echo -e "${RED}✗${NC} No Node.js version found in /opt/plesk/node/"
         echo "Available versions:"
