@@ -68,43 +68,59 @@ export async function POST(request: NextRequest) {
 
     // Send emails and create tracking records
     let delivered = 0
+    const errors: string[] = []
+
     const sendPromises = uniqueUsers.map(async (user) => {
       const trackingId = generateTrackingId()
 
-      // Create tracking record
-      await db.emailRecipient.create({
-        data: {
-          userId: user.id,
-          campaignId: campaign.id,
-          trackingId,
-        }
-      })
-
-      // Send email
-      const result = await sendEmail({
-        to: user.email,
-        subject,
-        html: htmlContent,
-        text: stripHtml(htmlContent)
-      })
-
-      if (result.success) {
-        // Mark as delivered
-        await db.emailRecipient.updateMany({
-          where: { trackingId },
+      try {
+        // Create tracking record
+        await db.emailRecipient.create({
           data: {
-            delivered: true,
-            deliveredAt: new Date()
+            userId: user.id,
+            campaignId: campaign.id,
+            trackingId,
           }
         })
-        delivered++
-      }
 
-      return result
+        // Send email
+        const result = await sendEmail({
+          to: user.email,
+          subject,
+          html: htmlContent,
+          text: stripHtml(htmlContent)
+        })
+
+        if (result.success) {
+          // Mark as delivered
+          await db.emailRecipient.updateMany({
+            where: { trackingId },
+            data: {
+              delivered: true,
+              deliveredAt: new Date()
+            }
+          })
+          delivered++
+        } else {
+          errors.push(`Failed to send to ${user.email}: ${JSON.stringify(result.error)}`)
+        }
+
+        return result
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        errors.push(`Error sending to ${user.email}: ${errorMsg}`)
+        console.error(`Error sending to ${user.email}:`, error)
+        return { success: false, error }
+      }
     })
 
     // Wait for all emails to send
     await Promise.all(sendPromises)
+
+    // Log any errors
+    if (errors.length > 0) {
+      console.error('Email sending errors:', errors)
+    }
 
     // Update campaign stats
     await db.emailCampaign.update({
@@ -116,7 +132,8 @@ export async function POST(request: NextRequest) {
       success: true,
       campaignId: campaign.id,
       recipientCount: uniqueUsers.length,
-      delivered
+      delivered,
+      errors: errors.length > 0 ? errors : undefined
     })
 
   } catch (error) {
