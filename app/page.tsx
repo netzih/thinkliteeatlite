@@ -6,6 +6,7 @@
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, TrendingDown, Heart, Sparkles } from "lucide-react"
 import { SignupForm } from "@/components/signup-form"
+import Link from "next/link"
 
 export default function LandingPage() {
   return (
@@ -40,7 +41,7 @@ export default function LandingPage() {
             </p>
 
             {/* CTA Box */}
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 mb-12 border-2 border-brand-sage/30">
+            <div id="signup" className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 mb-12 border-2 border-brand-sage/30">
               <div className="mb-6 text-center">
                 <div className="inline-flex items-center gap-2 bg-brand-lime/20 text-brand-charcoal px-4 py-2 rounded-full mb-4">
                   <Sparkles className="h-4 w-4" />
@@ -136,14 +137,15 @@ export default function LandingPage() {
           <p className="text-xl mb-8 text-white/90">
             Get instant access to your free 8-minute course
           </p>
-          <Button
-            variant="accent"
-            size="xl"
-            className="text-lg"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          >
-            Sign Up Now - It's Free
-          </Button>
+          <Link href="#signup">
+            <Button
+              variant="accent"
+              size="xl"
+              className="text-lg"
+            >
+              Sign Up Now - It's Free
+            </Button>
+          </Link>
         </div>
       </section>
 
