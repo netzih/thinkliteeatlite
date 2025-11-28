@@ -9,6 +9,7 @@ import { authOptions } from '@/lib/auth/config'
 import { db } from '@/lib/db'
 import { sendEmail, stripHtml } from '@/lib/email'
 import { generateTrackingId } from '@/lib/utils'
+import { replaceMergeTags, getUserMergeTagData } from '@/lib/merge-tags'
 
 export async function POST(request: NextRequest) {
   try {
@@ -83,12 +84,23 @@ export async function POST(request: NextRequest) {
           }
         })
 
-        // Send email
+        // Get user merge tag data
+        const mergeData = getUserMergeTagData(
+          user,
+          process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        )
+
+        // Replace merge tags in subject and content
+        const personalizedSubject = replaceMergeTags(subject, mergeData)
+        const personalizedHtml = replaceMergeTags(htmlContent, mergeData)
+        const personalizedText = replaceMergeTags(stripHtml(htmlContent), mergeData)
+
+        // Send email with personalized content
         const result = await sendEmail({
           to: user.email,
-          subject,
-          html: htmlContent,
-          text: stripHtml(htmlContent)
+          subject: personalizedSubject,
+          html: personalizedHtml,
+          text: personalizedText
         })
 
         if (result.success) {

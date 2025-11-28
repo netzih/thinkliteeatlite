@@ -9,7 +9,8 @@ import { useState, useRef, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Loader2, Send, Eye } from 'lucide-react'
+import { Loader2, Send, Eye, Tag } from 'lucide-react'
+import { AVAILABLE_MERGE_TAGS } from '@/lib/merge-tags'
 
 // Dynamically import Jodit to avoid SSR issues
 const JoditEditor = dynamic(() => import('jodit-react'), {
@@ -71,6 +72,17 @@ export default function EmailComposer({ groups }: EmailComposerProps) {
         ? prev.filter(id => id !== groupId)
         : [...prev, groupId]
     )
+  }
+
+  // Insert merge tag into editor
+  const insertMergeTag = (tag: string) => {
+    if (editor.current && (editor.current as any).value !== undefined) {
+      const jodit = editor.current as any
+      jodit.selection.insertHTML(tag)
+    } else {
+      // Fallback: append to content
+      setContent(prev => prev + ' ' + tag)
+    }
   }
 
   // Send email
@@ -187,6 +199,33 @@ export default function EmailComposer({ groups }: EmailComposerProps) {
 
       {/* Sidebar */}
       <div className="space-y-6">
+        {/* Merge Tags */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h3 className="text-sm font-medium text-gray-900 mb-2 flex items-center gap-2">
+            <Tag className="h-4 w-4" />
+            Personalization Tags
+          </h3>
+          <p className="text-xs text-gray-500 mb-4">
+            Click to insert into your email
+          </p>
+          <div className="space-y-2">
+            {AVAILABLE_MERGE_TAGS.map(({ tag, description }) => (
+              <button
+                key={tag}
+                onClick={() => insertMergeTag(tag)}
+                className="w-full text-left p-2 border rounded-lg hover:bg-gray-50 hover:border-brand-forest transition-colors group"
+              >
+                <div className="font-mono text-sm text-brand-forest group-hover:text-brand-charcoal">
+                  {tag}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  {description}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Recipients */}
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="text-sm font-medium text-gray-900 mb-4">
