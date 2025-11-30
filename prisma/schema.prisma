@@ -214,3 +214,208 @@ model EmailFlowExecution {
   @@index([scheduledFor])
   @@index([status])
 }
+
+// ============================================
+// COURSE PLATFORM MODELS
+// ============================================
+
+// A course contains multiple modules
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique  // URL-friendly identifier
+  description String?  @db.Text
+  thumbnail   String?  // Image URL
+
+  // Settings
+  published   Boolean  @default(false)
+  featured    Boolean  @default(false)
+  price       Int      @default(0)  // In cents (0 = free)
+
+  // Order
+  order       Int      @default(0)
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  modules     Module[]
+  enrollments CourseEnrollment[]
+
+  @@index([slug])
+  @@index([published])
+  @@index([order])
+}
+
+// A module is a section within a course
+model Module {
+  id          String   @id @default(cuid())
+  courseId    String
+  title       String
+  description String?  @db.Text
+
+  // Order within course
+  order       Int      @default(0)
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+
+  @@index([courseId])
+  @@index([order])
+}
+
+// A lesson is individual content within a module
+model Lesson {
+  id          String   @id @default(cuid())
+  moduleId    String
+  title       String
+  description String?  @db.Text
+
+  // Content type and data
+  type        String   // "slide", "video", "quiz", "text"
+  content     String?  @db.Text  // JSON or HTML content
+  videoUrl    String?  // For video lessons
+  duration    Int?     // Estimated minutes
+
+  // Order within module
+  order       Int      @default(0)
+
+  // Settings
+  isFree      Boolean  @default(false)  // Free preview lesson
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  module      Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  resources   LessonResource[]
+  progress    LessonProgress[]
+  quizAttempts QuizAttempt[]
+
+  @@index([moduleId])
+  @@index([order])
+}
+
+// Downloadable resources attached to lessons
+model LessonResource {
+  id          String   @id @default(cuid())
+  lessonId    String
+  title       String
+  description String?
+
+  // File details
+  fileType    String   // "pdf", "audio", "image", "video", "zip", "document"
+  fileUrl     String   // Path or URL to file
+  fileSize    Int?     // Size in bytes
+
+  // Order within lesson
+  order       Int      @default(0)
+
+  // Stats
+  downloadCount Int    @default(0)
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  lesson      Lesson          @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  downloads   ResourceDownload[]
+
+  @@index([lessonId])
+  @@index([order])
+}
+
+// Track resource downloads by users
+model ResourceDownload {
+  id          String   @id @default(cuid())
+  userId      String
+  resourceId  String
+  downloadedAt DateTime @default(now())
+
+  // Relations
+  resource    LessonResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([resourceId])
+  @@index([downloadedAt])
+}
+
+// User enrollment in courses
+model CourseEnrollment {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    String
+
+  // Progress
+  progress    Int      @default(0)  // Percentage 0-100
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+
+  // Access
+  enrolledAt  DateTime @default(now())
+  expiresAt   DateTime?  // For time-limited access
+
+  // Relations
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
+
+// Track individual lesson progress
+model LessonProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+
+  // Progress
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+
+  // For video lessons
+  watchTime   Int?     // Seconds watched
+  lastPosition Int?    // Last playback position
+
+  // Timestamps
+  startedAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+  @@index([completed])
+}
+
+// Quiz attempts and scores
+model QuizAttempt {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+
+  // Results
+  score       Int      // Percentage 0-100
+  passed      Boolean  @default(false)
+  answers     String   @db.Text  // JSON of user answers
+
+  // Timestamps
+  attemptedAt DateTime @default(now())
+
+  // Relations
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([lessonId])
+  @@index([attemptedAt])
+}
