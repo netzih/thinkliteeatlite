@@ -73,7 +73,7 @@ export function getUserMergeTagData(user: {
 export function validateMergeTags(content: string): { valid: boolean; invalidTags: string[] } {
   const tagRegex = /\{\{([^}]+)\}\}/g
   const matches = Array.from(content.matchAll(tagRegex))
-  const validTags = AVAILABLE_MERGE_TAGS.map(t => t.tag)
+  const validTags: string[] = AVAILABLE_MERGE_TAGS.map(t => t.tag)
   const invalidTags: string[] = []
 
   for (const match of matches) {
