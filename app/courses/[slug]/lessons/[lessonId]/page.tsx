@@ -1,10 +1,13 @@
 /**
  * Lesson Player Page
  * Displays lesson content with navigation and progress tracking
+ * Requires user authentication and enrollment verification
  */
 
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/config'
 import { db } from '@/lib/db'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -30,6 +33,18 @@ async function getLesson(lessonId: string) {
     }
   })
   return lesson
+}
+
+async function checkEnrollment(userId: string, courseId: string) {
+  const enrollment = await db.courseEnrollment.findUnique({
+    where: {
+      userId_courseId: {
+        userId,
+        courseId
+      }
+    }
+  })
+  return enrollment
 }
 
 // Helper to get resource icon
@@ -60,6 +75,12 @@ export default async function LessonPlayerPage({
 }: {
   params: { slug: string; lessonId: string }
 }) {
+  // Check authentication
+  const session = await getServerSession(authOptions)
+  if (!session || (session.user as any).role !== 'user') {
+    redirect(`/login?callbackUrl=/courses/${params.slug}/lessons/${params.lessonId}`)
+  }
+
   const lesson = await getLesson(params.lessonId)
 
   if (!lesson || lesson.module.course.slug !== params.slug) {
@@ -68,6 +89,15 @@ export default async function LessonPlayerPage({
 
   const course = lesson.module.course
   const currentModule = lesson.module
+
+  // Check enrollment - deny access unless lesson is free or user is enrolled
+  if (!lesson.isFree) {
+    const enrollment = await checkEnrollment(session.user.id, course.id)
+    if (!enrollment) {
+      // Redirect to course detail page where they can enroll
+      redirect(`/courses/${course.slug}`)
+    }
+  }
 
   // Find previous and next lessons
   const currentLessonIndex = currentModule.lessons.findIndex(l => l.id === lesson.id)

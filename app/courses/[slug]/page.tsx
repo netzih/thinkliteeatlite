@@ -1,13 +1,17 @@
 /**
  * Course Detail Page
  * Shows course overview and module list
+ * Requires user authentication and checks enrollment
  */
 
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/config'
 import { db } from '@/lib/db'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { EnrollButton } from '@/components/course/enroll-button'
 import { BookOpen, Clock, PlayCircle, FileText, CheckCircle2, Lock } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -32,6 +36,18 @@ async function getCourse(slug: string) {
   return course
 }
 
+async function checkEnrollment(userId: string, courseId: string) {
+  const enrollment = await db.courseEnrollment.findUnique({
+    where: {
+      userId_courseId: {
+        userId,
+        courseId
+      }
+    }
+  })
+  return enrollment
+}
+
 // Helper to get lesson icon
 function getLessonIcon(type: string) {
   switch (type) {
@@ -49,11 +65,21 @@ export default async function CourseDetailPage({
 }: {
   params: { slug: string }
 }) {
+  // Check authentication
+  const session = await getServerSession(authOptions)
+  if (!session || (session.user as any).role !== 'user') {
+    redirect(`/login?callbackUrl=/courses/${params.slug}`)
+  }
+
   const course = await getCourse(params.slug)
 
   if (!course) {
     notFound()
   }
+
+  // Check enrollment
+  const enrollment = await checkEnrollment(session.user.id, course.id)
+  const isEnrolled = !!enrollment
 
   const totalLessons = course.modules.reduce((sum, module) => sum + module.lessons.length, 0)
 
@@ -150,10 +176,10 @@ export default async function CourseDetailPage({
                       </div>
 
                       {/* Access Button */}
-                      {lesson.isFree ? (
+                      {lesson.isFree || isEnrolled ? (
                         <Link href={`/courses/${course.slug}/lessons/${lesson.id}`}>
                           <Button size="sm" variant="outline">
-                            Start Free
+                            {lesson.isFree ? 'Free Preview' : 'Start Lesson'}
                           </Button>
                         </Link>
                       ) : (
@@ -170,16 +196,33 @@ export default async function CourseDetailPage({
           ))}
         </div>
 
-        {/* Enroll CTA */}
-        {course.price === 0 && (
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 mb-4">
-              This course is completely free! Start learning today.
-            </p>
-            <Button size="lg" className="bg-brand-forest hover:bg-brand-forest/90 text-white">
-              Start Course
-            </Button>
-          </div>
+        {/* Enrollment Section */}
+        {!isEnrolled && (
+          <Card className="mt-8 p-8 bg-gradient-to-r from-brand-forest to-brand-teal text-white">
+            <div className="text-center">
+              <h3 className="text-2xl font-crimson font-bold mb-4">
+                {course.price === 0 ? 'Start Learning for Free' : 'Enroll in This Course'}
+              </h3>
+              <p className="text-white/90 mb-6">
+                {course.price === 0
+                  ? 'This course is completely free! Enroll now to access all lessons and track your progress.'
+                  : `Invest in your health journey. One-time payment of $${(course.price / 100).toFixed(2)}`
+                }
+              </p>
+
+              <EnrollButton
+                courseId={course.id}
+                courseSlug={course.slug}
+                coursePrice={course.price}
+              />
+
+              {course.price > 0 && (
+                <p className="text-sm text-white/70 mt-4">
+                  Secure payment • Lifetime access • 30-day money-back guarantee
+                </p>
+              )}
+            </div>
+          </Card>
         )}
       </section>
 

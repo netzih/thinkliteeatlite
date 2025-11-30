@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { db } from '@/lib/db'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Plus, BookOpen, Eye, EyeOff } from 'lucide-react'
+import { Plus, BookOpen, Eye, EyeOff, Users } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -123,6 +123,12 @@ export default async function AdminCoursesPage() {
                       <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4 mr-2" />
                         Preview
+                      </Button>
+                    </Link>
+                    <Link href={`/admin/courses/${course.id}/enrollments`}>
+                      <Button variant="outline" size="sm">
+                        <Users className="h-4 w-4 mr-2" />
+                        Enrollments
                       </Button>
                     </Link>
                     <Link href={`/admin/courses/${course.id}/edit`}>
