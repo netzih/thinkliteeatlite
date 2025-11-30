@@ -145,3 +145,72 @@ model Admin {
 
   @@index([email])
 }
+
+// Automated email flows (e.g., welcome sequence, engagement flow)
+model EmailFlow {
+  id          String   @id @default(cuid())
+  name        String   @unique  // e.g., "Welcome Flow", "Video Engagement"
+  description String?
+  trigger     String   // e.g., "signup", "video_watch"
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  steps       EmailFlowStep[]
+  executions  EmailFlowExecution[]
+
+  @@index([trigger])
+  @@index([enabled])
+}
+
+// Individual steps within an email flow
+model EmailFlowStep {
+  id          String   @id @default(cuid())
+  flowId      String
+  stepNumber  Int      // Order in sequence (1, 2, 3, ...)
+  delayDays   Int      // Days after trigger (0 = immediate, 1 = next day, etc.)
+  subject     String
+  htmlContent String   @db.Text
+  textContent String   @db.Text
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  flow        EmailFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  executions  EmailFlowExecution[]
+
+  @@unique([flowId, stepNumber])
+  @@index([flowId])
+  @@index([enabled])
+}
+
+// Track flow email execution per user
+model EmailFlowExecution {
+  id          String   @id @default(cuid())
+  userId      String
+  flowId      String
+  stepId      String
+
+  // Scheduling
+  scheduledFor DateTime  // When this email should be sent
+  sentAt       DateTime? // When it was actually sent (null = not sent yet)
+
+  // Status
+  status      String    @default("pending") // "pending", "sent", "failed", "skipped"
+  error       String?   @db.Text
+
+  // Relations
+  flow        EmailFlow     @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  step        EmailFlowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([flowId])
+  @@index([stepId])
+  @@index([scheduledFor])
+  @@index([status])
+}
