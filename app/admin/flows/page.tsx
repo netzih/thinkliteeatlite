@@ -42,7 +42,7 @@ export default async function FlowsPage() {
           </p>
         </div>
         <Link href="/admin/flows/new">
-          <Button className="bg-forest hover:bg-forest/90">
+          <Button className="bg-brand-forest hover:bg-brand-forest/90 text-white">
             <Plus className="h-4 w-4 mr-2" />
             New Flow
           </Button>
@@ -60,7 +60,7 @@ export default async function FlowsPage() {
             Create your first automated email sequence to engage users
           </p>
           <Link href="/admin/flows/new">
-            <Button className="bg-forest hover:bg-forest/90">
+            <Button className="bg-brand-forest hover:bg-brand-forest/90 text-white">
               <Plus className="h-4 w-4 mr-2" />
               Create First Flow
             </Button>
