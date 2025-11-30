@@ -39,12 +39,6 @@ fi
 
 echo ""
 
-# Pull latest code
-echo "📥 Pulling latest code..."
-git pull origin claude/course-platform-evaluation-01NdSi7g38F7t8kgjKybpXop
-echo -e "${GREEN}✓${NC} Code updated"
-echo ""
-
 # Install dependencies
 echo "📦 Installing dependencies..."
 $NPM install
