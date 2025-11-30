@@ -46,14 +46,14 @@ export async function GET(
           }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { enrolledAt: 'desc' }
     })
 
     return NextResponse.json({
       course,
       enrollments: enrollments.map(e => ({
         ...e,
-        enrolledAt: e.createdAt.toISOString()
+        enrolledAt: e.enrolledAt.toISOString()
       }))
     })
 
@@ -145,7 +145,7 @@ export async function POST(
       success: true,
       enrollment: {
         ...enrollment,
-        enrolledAt: enrollment.createdAt.toISOString()
+        enrolledAt: enrollment.enrolledAt.toISOString()
       }
     }, { status: 201 })
 
