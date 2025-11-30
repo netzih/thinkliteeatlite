@@ -14,13 +14,24 @@ First, you need to apply the database schema changes:
 
 ```bash
 # SSH into your Plesk server
-cd /path/to/your/app
+cd /var/www/vhosts/shluchimtalk.com/llgl.shluchimtalk.com
+
+# Set up Plesk Node.js paths
+LATEST_NODE=$(ls -1 /opt/plesk/node/ | grep -E '^[0-9]+$' | sort -rn | head -1)
+NODE_PATH="/opt/plesk/node/${LATEST_NODE}/bin"
+export PATH="${NODE_PATH}:$PATH"
 
 # Run the database migration
-npx prisma db push
+$NODE_PATH/npx prisma db push
 
 # Regenerate Prisma client
-npx prisma generate
+$NODE_PATH/npx prisma generate
+
+# Rebuild the app
+$NODE_PATH/npm run build
+
+# Restart the app in Plesk
+# Go to Plesk → Domains → llgl.shluchimtalk.com → Node.js → Click "Restart App"
 ```
 
 ## Setting Up the Cron Job
