@@ -6,12 +6,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Users, Mail, BarChart3, Settings, Workflow } from 'lucide-react'
+import { Home, Users, Mail, BarChart3, Settings, Workflow, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: Home },
   { name: 'Users', href: '/admin/users', icon: Users },
+  { name: 'Courses', href: '/admin/courses', icon: BookOpen },
   { name: 'Compose Email', href: '/admin/emails/compose', icon: Mail },
   { name: 'Email History', href: '/admin/emails', icon: BarChart3 },
   { name: 'Email Flows', href: '/admin/flows', icon: Workflow },
