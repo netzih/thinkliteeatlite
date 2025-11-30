@@ -12,6 +12,7 @@
 
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
+import { triggerFlow } from '@/lib/flows'
 import { CheckCircle2, XCircle, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -44,6 +45,14 @@ export default async function WatchPage({ searchParams }: PageProps) {
       where: { id: user.id },
       data: { videoAccessed: true }
     })
+
+    // Trigger video watch flow
+    try {
+      await triggerFlow(user.id, 'video_watch')
+    } catch (flowError) {
+      console.error('Failed to trigger video_watch flow:', flowError)
+      // Don't fail the page if flow triggering fails
+    }
   }
 
   // Show video page

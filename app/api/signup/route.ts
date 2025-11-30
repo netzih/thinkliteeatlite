@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { generateAccessToken, isValidEmail } from '@/lib/utils'
 import { sendWelcomeEmail } from '@/lib/email'
+import { triggerFlow } from '@/lib/flows'
 
 export async function POST(request: NextRequest) {
   try {
@@ -103,6 +104,14 @@ export async function POST(request: NextRequest) {
     if (!emailResult.success) {
       console.error('Failed to send welcome email:', emailResult.error)
       // Don't fail the signup if email fails - user is still created
+    }
+
+    // Trigger any automated email flows for signup
+    try {
+      await triggerFlow(user.id, 'signup')
+    } catch (flowError) {
+      console.error('Failed to trigger signup flow:', flowError)
+      // Don't fail the signup if flow triggering fails
     }
 
     // Return success

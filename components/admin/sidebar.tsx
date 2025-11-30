@@ -6,7 +6,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Users, Mail, BarChart3, Settings } from 'lucide-react'
+import { Home, Users, Mail, BarChart3, Settings, Workflow } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navigation = [
@@ -14,6 +14,7 @@ const navigation = [
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Compose Email', href: '/admin/emails/compose', icon: Mail },
   { name: 'Email History', href: '/admin/emails', icon: BarChart3 },
+  { name: 'Email Flows', href: '/admin/flows', icon: Workflow },
 ]
 
 export default function AdminSidebar() {
