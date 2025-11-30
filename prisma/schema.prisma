@@ -16,6 +16,7 @@ model User {
   email         String   @unique
   firstName     String?
   lastName      String?
+  password      String?  // Hashed password for login (optional for email-only signups)
   accessToken   String   @unique  // Personalized link token for video access
   videoAccessed Boolean  @default(false)  // Has user watched the free video?
   createdAt     DateTime @default(now())
@@ -24,6 +25,10 @@ model User {
   // Relations
   groups        UserGroup[]
   emailStats    EmailRecipient[]
+  enrollments   CourseEnrollment[]
+  lessonProgress LessonProgress[]
+  quizAttempts  QuizAttempt[]
+  downloads     ResourceDownload[]
 
   @@index([email])
   @@index([accessToken])
@@ -341,6 +346,7 @@ model ResourceDownload {
   downloadedAt DateTime @default(now())
 
   // Relations
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   resource    LessonResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -364,6 +370,7 @@ model CourseEnrollment {
   expiresAt   DateTime?  // For time-limited access
 
   // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
@@ -390,6 +397,7 @@ model LessonProgress {
   updatedAt   DateTime @updatedAt
 
   // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
@@ -413,6 +421,7 @@ model QuizAttempt {
   attemptedAt DateTime @default(now())
 
   // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@index([userId])
