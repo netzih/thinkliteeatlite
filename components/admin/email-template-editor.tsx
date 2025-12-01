@@ -49,6 +49,7 @@ export default function EmailTemplateEditor() {
     readonly: false,
     placeholder: 'Enter HTML code...',
     minHeight: 400,
+    width: '100%',
     useSearch: false,
     spellcheck: false,
     showCharsCounter: false,
