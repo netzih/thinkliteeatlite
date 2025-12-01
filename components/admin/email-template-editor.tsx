@@ -7,7 +7,10 @@ import { Card } from '@/components/ui/card'
 import { Save, RotateCcw, Eye } from 'lucide-react'
 import dynamic from 'next/dynamic'
 
-const JoditEditor = dynamic(() => import('jodit-react'), { ssr: false })
+const JoditEditor = dynamic(() => import('jodit-react'), {
+  ssr: false,
+  loading: () => <div className="h-96 bg-gray-100 rounded animate-pulse" />
+})
 
 export default function EmailTemplateEditor() {
   const router = useRouter()
@@ -46,7 +49,6 @@ export default function EmailTemplateEditor() {
     readonly: false,
     placeholder: 'Enter HTML code...',
     minHeight: 400,
-    width: '100%',
     useSearch: false,
     spellcheck: false,
     showCharsCounter: false,
