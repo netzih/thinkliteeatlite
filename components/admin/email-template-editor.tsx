@@ -50,6 +50,11 @@ export default function EmailTemplateEditor() {
     placeholder: 'Enter HTML code...',
     minHeight: 400,
     width: '100%',
+    maxWidth: '100%',
+    style: {
+      width: '100%',
+      maxWidth: '100%'
+    },
     useSearch: false,
     spellcheck: false,
     showCharsCounter: false,
@@ -130,8 +135,17 @@ export default function EmailTemplateEditor() {
   }
 
   return (
-    <div className="space-y-6">
-      <Card className="p-6 bg-blue-50 border-blue-200">
+    <>
+      <style jsx global>{`
+        .jodit-container,
+        .jodit-workplace,
+        .jodit-wysiwyg {
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+      `}</style>
+      <div className="space-y-6">
+        <Card className="p-6 bg-blue-50 border-blue-200">
         <h3 className="font-semibold text-blue-900 mb-2">How it works</h3>
         <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
           <li>The header wraps around the beginning of every email</li>
@@ -230,5 +244,6 @@ export default function EmailTemplateEditor() {
         </Button>
       </div>
     </div>
+    </>
   )
 }
