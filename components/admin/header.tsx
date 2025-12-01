@@ -40,7 +40,10 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => signOut({ callbackUrl: '/admin/login' })}
+              onClick={async () => {
+                await signOut({ redirect: false })
+                window.location.href = '/admin/login'
+              }}
             >
               <LogOut className="h-4 w-4 mr-2" />
               Logout
