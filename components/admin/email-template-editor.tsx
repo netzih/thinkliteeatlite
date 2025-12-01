@@ -123,7 +123,8 @@ export default function EmailTemplateEditor() {
     return <div className="text-center py-8">Loading templates...</div>
   }
 
-  const previewHtml = showPreview ? `${header}<div style="padding: 20px;"><h2>Sample Email Content</h2><p>This is what your email content will look like with the custom header and footer.</p><p>You can use merge tags like {{firstName}}, {{lastName}}, and {{email}} in both the header and footer.</p></div>${footer}` : ''
+  const sampleContent = '<div style="padding: 20px;"><h2>Sample Email Content</h2><p>This is what your email content will look like with the custom header and footer.</p><p>You can use merge tags like {{firstName}}, {{lastName}}, and {{email}} in both the header and footer.</p></div>'
+  const previewHtml = showPreview ? header + sampleContent + footer : ''
 
   return (
     <div className="space-y-6">
