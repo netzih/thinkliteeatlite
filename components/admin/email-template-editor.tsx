@@ -1,15 +1,10 @@
 'use client'
 
-/**
- * Email Template Editor Component
- * Edit email header and footer templates
- */
-
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Save, RotateCcw, Eye, Code } from 'lucide-react'
+import { Save, RotateCcw, Eye } from 'lucide-react'
 import dynamic from 'next/dynamic'
 
 const JoditEditor = dynamic(() => import('jodit-react'), { ssr: false })
@@ -28,7 +23,6 @@ export default function EmailTemplateEditor() {
   const headerEditorRef = useRef<any>(null)
   const footerEditorRef = useRef<any>(null)
 
-  // Fetch current templates
   useEffect(() => {
     async function fetchTemplates() {
       try {
@@ -111,7 +105,6 @@ export default function EmailTemplateEditor() {
 
       if (!response.ok) throw new Error('Failed to reset templates')
 
-      // Reload to fetch defaults
       window.location.reload()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reset templates')
@@ -120,35 +113,31 @@ export default function EmailTemplateEditor() {
   }
 
   if (loading) {
-    return <div className="text-center py-8">Loading templates...</div>
+    return (
+      <div className="text-center py-8">Loading templates...</div>
+    )
   }
 
-  // Sample content for preview (constructed to avoid template literal issues)
-  const sampleContent = [
-    '<div style="padding: 20px;">',
-    '<h2>Sample Email Content</h2>',
-    '<p>This is what your email content will look like with the custom header and footer.</p>',
-    '<p>You can use merge tags in both the header and footer.</p>',
-    '</div>'
-  ].join('')
-
-  const previewHtml = showPreview ? header + sampleContent + footer : ''
+  function getPreviewHtml() {
+    if (!showPreview) return ''
+    const samplePart1 = '<div style="padding: 20px;"><h2>Sample Email Content</h2>'
+    const samplePart2 = '<p>This is what your email content will look like with the custom header and footer.</p></div>'
+    return header + samplePart1 + samplePart2 + footer
+  }
 
   return (
     <div className="space-y-6">
-      {/* Instructions */}
       <Card className="p-6 bg-blue-50 border-blue-200">
         <h3 className="font-semibold text-blue-900 mb-2">How it works</h3>
         <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-          <li>The <strong>header</strong> wraps around the beginning of every email</li>
-          <li>The <strong>footer</strong> wraps around the end of every email</li>
-          <li>Your email content (from campaigns and flows) appears between them</li>
-          <li>You can use HTML, CSS, and merge tags ({{'{'}firstName{'}'}}, {{'{'}email{'}'}}, etc.)</li>
+          <li>The header wraps around the beginning of every email</li>
+          <li>The footer wraps around the end of every email</li>
+          <li>Your email content from campaigns and flows appears between them</li>
+          <li>You can use HTML CSS and merge tags</li>
           <li>Changes apply to all future emails automatically</li>
         </ul>
       </Card>
 
-      {/* Header Editor */}
       <Card className="p-6">
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -165,7 +154,6 @@ export default function EmailTemplateEditor() {
         />
       </Card>
 
-      {/* Footer Editor */}
       <Card className="p-6">
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -182,7 +170,6 @@ export default function EmailTemplateEditor() {
         />
       </Card>
 
-      {/* Preview */}
       <Card className="p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Preview</h2>
@@ -198,12 +185,11 @@ export default function EmailTemplateEditor() {
 
         {showPreview && (
           <div className="border rounded p-4 bg-gray-50 overflow-auto max-h-96">
-            <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
+            <div dangerouslySetInnerHTML={{ __html: getPreviewHtml() }} />
           </div>
         )}
       </Card>
 
-      {/* Error/Success Messages */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
           {error}
@@ -216,7 +202,6 @@ export default function EmailTemplateEditor() {
         </div>
       )}
 
-      {/* Actions */}
       <div className="flex gap-3">
         <Button
           onClick={handleSave}
