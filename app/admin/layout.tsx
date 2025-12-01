@@ -21,6 +21,11 @@ export default async function AdminLayout({
     redirect('/admin/login')
   }
 
+  // Check if user is admin
+  if ((session.user as any).role !== 'admin') {
+    redirect('/')
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminSidebar />
