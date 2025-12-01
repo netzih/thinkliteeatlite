@@ -26,6 +26,7 @@ export async function POST(
       description,
       type,
       videoUrl,
+      imageUrl,
       content,
       duration,
       isFree
@@ -69,6 +70,7 @@ export async function POST(
         description: description || '',
         type: type || 'video',
         videoUrl: videoUrl || null,
+        imageUrl: imageUrl || null,
         content: content || null,
         duration: duration || null,
         isFree: isFree || false,

@@ -283,9 +283,10 @@ model Lesson {
   description String?  @db.Text
 
   // Content type and data
-  type        String   // "slide", "video", "quiz", "text"
+  type        String   // "slide", "video", "quiz", "text", "image"
   content     String?  @db.Text  // JSON or HTML content
   videoUrl    String?  // For video lessons
+  imageUrl    String?  // For image/GIF lessons
   duration    Int?     // Estimated minutes
 
   // Order within module

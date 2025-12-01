@@ -5,17 +5,24 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   ChevronLeft, Plus, Edit2, Trash2, Save, X,
   GripVertical, Video, FileText, Upload, Loader2,
-  ChevronDown, ChevronRight
+  ChevronDown, ChevronRight, Image as ImageIcon
 } from 'lucide-react'
+
+// Dynamically import Jodit to avoid SSR issues
+const JoditEditor = dynamic(() => import('jodit-react'), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-gray-100 rounded animate-pulse" />
+})
 
 interface Course {
   id: string
@@ -41,6 +48,7 @@ interface Lesson {
   description: string | null
   type: string
   videoUrl: string | null
+  imageUrl: string | null
   content: string | null
   duration: number | null
   order: number
@@ -86,10 +94,34 @@ export default function EditCoursePage({
     description: '',
     type: 'video',
     videoUrl: '',
+    imageUrl: '',
     content: '',
     duration: '',
     isFree: false
   })
+
+  // Jodit editor ref
+  const editorRef = useRef(null)
+
+  // Jodit config
+  const editorConfig = useMemo(() => ({
+    readonly: false,
+    placeholder: 'Write your lesson content here...',
+    minHeight: 400,
+    buttons: [
+      'bold', 'italic', 'underline', '|',
+      'ul', 'ol', '|',
+      'font', 'fontsize', '|',
+      'paragraph', 'h1', 'h2', 'h3', '|',
+      'link', 'image', '|',
+      'align', '|',
+      'undo', 'redo'
+    ],
+    removeButtons: ['source', 'fullsize', 'about'],
+    showCharsCounter: false,
+    showWordsCounter: false,
+    showXPathInStatusbar: false,
+  }), [])
 
   useEffect(() => {
     fetchCourse()
@@ -204,6 +236,7 @@ export default function EditCoursePage({
         description: '',
         type: 'video',
         videoUrl: '',
+        imageUrl: '',
         content: '',
         duration: '',
         isFree: false
@@ -533,6 +566,7 @@ export default function EditCoursePage({
                                 onChange={(e) => setLessonForm(prev => ({ ...prev, type: e.target.value }))}
                               >
                                 <option value="video">Video</option>
+                                <option value="image">Image / GIF</option>
                                 <option value="text">Text Content</option>
                               </select>
                             </div>
@@ -558,6 +592,36 @@ export default function EditCoursePage({
                                 value={lessonForm.videoUrl}
                                 onChange={(e) => setLessonForm(prev => ({ ...prev, videoUrl: e.target.value }))}
                                 placeholder="https://www.youtube.com/embed/..."
+                              />
+                            </div>
+                          )}
+
+                          {lessonForm.type === 'image' && (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Image URL (PNG, JPG, GIF)
+                              </label>
+                              <Input
+                                value={lessonForm.imageUrl}
+                                onChange={(e) => setLessonForm(prev => ({ ...prev, imageUrl: e.target.value }))}
+                                placeholder="https://example.com/image.gif"
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                GIFs are supported for animated images
+                              </p>
+                            </div>
+                          )}
+
+                          {lessonForm.type === 'text' && (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Lesson Content
+                              </label>
+                              <JoditEditor
+                                ref={editorRef}
+                                value={lessonForm.content}
+                                config={editorConfig}
+                                onBlur={(newContent) => setLessonForm(prev => ({ ...prev, content: newContent }))}
                               />
                             </div>
                           )}
@@ -606,6 +670,7 @@ export default function EditCoursePage({
                                   description: '',
                                   type: 'video',
                                   videoUrl: '',
+                                  imageUrl: '',
                                   content: '',
                                   duration: '',
                                   isFree: false
