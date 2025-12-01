@@ -36,7 +36,9 @@ interface FlowFormProps {
 
 const TRIGGERS = [
   { value: 'signup', label: 'User Signup' },
-  { value: 'video_watch', label: 'Video Watched' },
+  { value: 'course_enrollment', label: 'Course Enrollment' },
+  { value: 'lesson_completion', label: 'Lesson Completed' },
+  { value: 'course_completion', label: 'Course Completed' },
 ]
 
 export default function FlowForm({ flow }: FlowFormProps) {
