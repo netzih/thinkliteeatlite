@@ -135,16 +135,7 @@ export default function EmailTemplateEditor() {
   }
 
   return (
-    <>
-      <style jsx global>{`
-        .jodit-container,
-        .jodit-workplace,
-        .jodit-wysiwyg {
-          width: 100% !important;
-          max-width: 100% !important;
-        }
-      `}</style>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <Card className="p-6 bg-blue-50 border-blue-200">
         <h3 className="font-semibold text-blue-900 mb-2">How it works</h3>
         <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
@@ -156,7 +147,7 @@ export default function EmailTemplateEditor() {
         </ul>
       </Card>
 
-      <Card className="p-6">
+      <Card className="p-6 w-full" style={{ maxWidth: '100%' }}>
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="text-lg font-semibold">Email Header</h2>
@@ -164,7 +155,7 @@ export default function EmailTemplateEditor() {
           </div>
         </div>
 
-        <div className="w-full min-h-[400px]">
+        <div className="w-full min-h-[400px]" style={{ width: '100%', maxWidth: '100%' }}>
           <JoditEditor
             ref={headerEditorRef}
             value={header}
@@ -174,7 +165,7 @@ export default function EmailTemplateEditor() {
         </div>
       </Card>
 
-      <Card className="p-6">
+      <Card className="p-6 w-full" style={{ maxWidth: '100%' }}>
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="text-lg font-semibold">Email Footer</h2>
@@ -182,7 +173,7 @@ export default function EmailTemplateEditor() {
           </div>
         </div>
 
-        <div className="w-full min-h-[400px]">
+        <div className="w-full min-h-[400px]" style={{ width: '100%', maxWidth: '100%' }}>
           <JoditEditor
             ref={footerEditorRef}
             value={footer}
@@ -244,6 +235,5 @@ export default function EmailTemplateEditor() {
         </Button>
       </div>
     </div>
-    </>
   )
 }

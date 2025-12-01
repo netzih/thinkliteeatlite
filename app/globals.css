@@ -81,3 +81,12 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: #2D5D4F;
 }
+
+/* Force Jodit editor to full width */
+.jodit-container,
+.jodit-workplace,
+.jodit-wysiwyg,
+.jodit-editor {
+  width: 100% !important;
+  max-width: 100% !important;
+}
