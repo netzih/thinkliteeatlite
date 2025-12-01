@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { generateAccessToken, isValidEmail } from '@/lib/utils'
+import { triggerFlow } from '@/lib/flows'
 
 export async function POST(request: NextRequest) {
   try {
@@ -83,6 +84,15 @@ export async function POST(request: NextRequest) {
         groupId: allUsersGroup.id
       }
     })
+
+    // Trigger signup email flows
+    try {
+      await triggerFlow(user.id, 'signup')
+      console.log(`Triggered signup flows for user: ${user.email}`)
+    } catch (flowError) {
+      // Log error but don't fail registration
+      console.error('Error triggering signup flows:', flowError)
+    }
 
     return NextResponse.json({
       success: true,
