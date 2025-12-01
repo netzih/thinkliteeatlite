@@ -8,7 +8,7 @@ import EmailTemplateEditor from '@/components/admin/email-template-editor'
 
 export default function EmailTemplatePage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 max-w-full">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Email Template Settings</h1>
         <p className="text-gray-600 mt-2">
