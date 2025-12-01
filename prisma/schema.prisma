@@ -1,0 +1,441 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User who signed up for the course
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  firstName     String?
+  lastName      String?
+  password      String?  // Hashed password for login (optional for email-only signups)
+  accessToken   String   @unique  // Personalized link token for video access
+  videoAccessed Boolean  @default(false)  // Has user watched the free video?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  groups        UserGroup[]
+  emailStats    EmailRecipient[]
+  enrollments   CourseEnrollment[]
+  lessonProgress LessonProgress[]
+  quizAttempts  QuizAttempt[]
+  downloads     ResourceDownload[]
+
+  @@index([email])
+  @@index([accessToken])
+}
+
+// Email groups (e.g., "All Users", "New Signups", "Engaged Users")
+model Group {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users       UserGroup[]
+  emails      EmailToGroup[]
+
+  @@index([name])
+}
+
+// Many-to-many relationship between Users and Groups
+model UserGroup {
+  userId    String
+  groupId   String
+  addedAt   DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([userId, groupId])
+  @@index([userId])
+  @@index([groupId])
+}
+
+// Email campaigns sent
+model EmailCampaign {
+  id          String   @id @default(cuid())
+  subject     String
+  htmlContent String   @db.Text
+  textContent String   @db.Text
+  sentAt      DateTime @default(now())
+  sentBy      String   // Admin user who sent it
+
+  // Stats (calculated)
+  totalRecipients Int      @default(0)
+  delivered       Int      @default(0)
+  opened          Int      @default(0)
+  clicked         Int      @default(0)
+
+  // Relations
+  groups      EmailToGroup[]
+  recipients  EmailRecipient[]
+
+  @@index([sentAt])
+}
+
+// Many-to-many relationship between Emails and Groups
+model EmailToGroup {
+  campaignId String
+  groupId    String
+
+  campaign   EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  group      Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([campaignId, groupId])
+  @@index([campaignId])
+  @@index([groupId])
+}
+
+// Individual email tracking (one per user per campaign)
+model EmailRecipient {
+  id           String   @id @default(cuid())
+  userId       String
+  campaignId   String
+  trackingId   String   @unique  // For tracking pixel and links
+
+  // Status
+  delivered    Boolean  @default(false)
+  deliveredAt  DateTime?
+  opened       Boolean  @default(false)
+  openedAt     DateTime?
+  clicked      Boolean  @default(false)
+  clickedAt    DateTime?
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign     EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  clicks       EmailClick[]
+
+  @@unique([userId, campaignId])
+  @@index([userId])
+  @@index([campaignId])
+  @@index([trackingId])
+}
+
+// Track individual link clicks within emails
+model EmailClick {
+  id           String   @id @default(cuid())
+  recipientId  String
+  url          String   @db.Text
+  clickedAt    DateTime @default(now())
+
+  // Relations
+  recipient    EmailRecipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId])
+  @@index([clickedAt])
+}
+
+// Admin users for accessing the dashboard
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String   // Hashed with bcrypt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+// Automated email flows (e.g., welcome sequence, engagement flow)
+model EmailFlow {
+  id          String   @id @default(cuid())
+  name        String   @unique  // e.g., "Welcome Flow", "Video Engagement"
+  description String?
+  trigger     String   // e.g., "signup", "video_watch"
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  steps       EmailFlowStep[]
+  executions  EmailFlowExecution[]
+
+  @@index([trigger])
+  @@index([enabled])
+}
+
+// Individual steps within an email flow
+model EmailFlowStep {
+  id          String   @id @default(cuid())
+  flowId      String
+  stepNumber  Int      // Order in sequence (1, 2, 3, ...)
+  delayDays   Int      // Days after trigger (0 = immediate, 1 = next day, etc.)
+  subject     String
+  htmlContent String   @db.Text
+  textContent String   @db.Text
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  flow        EmailFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  executions  EmailFlowExecution[]
+
+  @@unique([flowId, stepNumber])
+  @@index([flowId])
+  @@index([enabled])
+}
+
+// Track flow email execution per user
+model EmailFlowExecution {
+  id          String   @id @default(cuid())
+  userId      String
+  flowId      String
+  stepId      String
+
+  // Scheduling
+  scheduledFor DateTime  // When this email should be sent
+  sentAt       DateTime? // When it was actually sent (null = not sent yet)
+
+  // Status
+  status      String    @default("pending") // "pending", "sent", "failed", "skipped"
+  error       String?   @db.Text
+
+  // Relations
+  flow        EmailFlow     @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  step        EmailFlowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([flowId])
+  @@index([stepId])
+  @@index([scheduledFor])
+  @@index([status])
+}
+
+// ============================================
+// COURSE PLATFORM MODELS
+// ============================================
+
+// A course contains multiple modules
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique  // URL-friendly identifier
+  description String?  @db.Text
+  thumbnail   String?  // Image URL
+
+  // Settings
+  published   Boolean  @default(false)
+  featured    Boolean  @default(false)
+  price       Int      @default(0)  // In cents (0 = free)
+
+  // Order
+  order       Int      @default(0)
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  modules     Module[]
+  enrollments CourseEnrollment[]
+
+  @@index([slug])
+  @@index([published])
+  @@index([order])
+}
+
+// A module is a section within a course
+model Module {
+  id          String   @id @default(cuid())
+  courseId    String
+  title       String
+  description String?  @db.Text
+
+  // Order within course
+  order       Int      @default(0)
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+
+  @@index([courseId])
+  @@index([order])
+}
+
+// A lesson is individual content within a module
+model Lesson {
+  id          String   @id @default(cuid())
+  moduleId    String
+  title       String
+  description String?  @db.Text
+
+  // Content type and data
+  type        String   // "slide", "video", "quiz", "text", "image"
+  content     String?  @db.Text  // JSON or HTML content
+  videoUrl    String?  // For video lessons
+  imageUrl    String?  // For image/GIF lessons
+  duration    Int?     // Estimated minutes
+
+  // Order within module
+  order       Int      @default(0)
+
+  // Settings
+  isFree      Boolean  @default(false)  // Free preview lesson
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  module      Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  resources   LessonResource[]
+  progress    LessonProgress[]
+  quizAttempts QuizAttempt[]
+
+  @@index([moduleId])
+  @@index([order])
+}
+
+// Downloadable resources attached to lessons
+model LessonResource {
+  id          String   @id @default(cuid())
+  lessonId    String
+  title       String
+  description String?
+
+  // File details
+  fileType    String   // "pdf", "audio", "image", "video", "zip", "document"
+  fileUrl     String   // Path or URL to file
+  fileSize    Int?     // Size in bytes
+
+  // Order within lesson
+  order       Int      @default(0)
+
+  // Stats
+  downloadCount Int    @default(0)
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  lesson      Lesson          @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  downloads   ResourceDownload[]
+
+  @@index([lessonId])
+  @@index([order])
+}
+
+// Track resource downloads by users
+model ResourceDownload {
+  id          String   @id @default(cuid())
+  userId      String
+  resourceId  String
+  downloadedAt DateTime @default(now())
+
+  // Relations
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resource    LessonResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([resourceId])
+  @@index([downloadedAt])
+}
+
+// User enrollment in courses
+model CourseEnrollment {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    String
+
+  // Progress
+  progress    Int      @default(0)  // Percentage 0-100
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+
+  // Access
+  enrolledAt  DateTime @default(now())
+  expiresAt   DateTime?  // For time-limited access
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
+
+// Track individual lesson progress
+model LessonProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+
+  // Progress
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+
+  // For video lessons
+  watchTime   Int?     // Seconds watched
+  lastPosition Int?    // Last playback position
+
+  // Timestamps
+  startedAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+  @@index([completed])
+}
+
+// Quiz attempts and scores
+model QuizAttempt {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+
+  // Results
+  score       Int      // Percentage 0-100
+  passed      Boolean  @default(false)
+  answers     String   @db.Text  // JSON of user answers
+
+  // Timestamps
+  attemptedAt DateTime @default(now())
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([lessonId])
+  @@index([attemptedAt])
+}
+
+// Global application settings
+model Settings {
+  id        String   @id @default(cuid())
+  key       String   @unique  // Setting identifier
+  value     String   @db.Text // Setting value (can be JSON)
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
