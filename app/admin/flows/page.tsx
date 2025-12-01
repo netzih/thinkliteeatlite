@@ -19,7 +19,9 @@ async function getFlows() {
       },
       _count: {
         select: {
-          executions: true
+          executions: {
+            where: { status: 'pending' }
+          }
         }
       }
     },
@@ -104,7 +106,7 @@ export default async function FlowsPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <Users className="h-4 w-4" />
-                      <span>{flow._count.executions} scheduled</span>
+                      <span>{flow._count.executions} pending</span>
                     </div>
                   </div>
 
