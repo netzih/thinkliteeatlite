@@ -429,3 +429,13 @@ model QuizAttempt {
   @@index([lessonId])
   @@index([attemptedAt])
 }
+
+// Global application settings
+model Settings {
+  id        String   @id @default(cuid())
+  key       String   @unique  // Setting identifier
+  value     String   @db.Text // Setting value (can be JSON)
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}

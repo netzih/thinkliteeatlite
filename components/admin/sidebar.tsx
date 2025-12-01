@@ -16,6 +16,7 @@ const navigation = [
   { name: 'Compose Email', href: '/admin/emails/compose', icon: Mail },
   { name: 'Email History', href: '/admin/emails', icon: BarChart3 },
   { name: 'Email Flows', href: '/admin/flows', icon: Workflow },
+  { name: 'Email Template', href: '/admin/settings/email-template', icon: Settings },
 ]
 
 export default function AdminSidebar() {

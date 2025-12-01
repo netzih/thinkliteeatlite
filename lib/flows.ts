@@ -78,6 +78,7 @@ export async function processPendingFlows() {
 
     const { sendEmail } = await import('@/lib/email')
     const { replaceMergeTags, getUserMergeTagData } = await import('@/lib/merge-tags')
+    const { wrapEmailContent } = await import('@/lib/email-template')
 
     // Process each execution
     for (const execution of pendingExecutions) {
@@ -105,9 +106,15 @@ export async function processPendingFlows() {
           process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
         )
 
-        // Replace merge tags
+        // Replace merge tags in content
+        const personalizedContent = replaceMergeTags(execution.step.htmlContent, mergeData)
+
+        // Wrap content with header/footer template
+        const wrappedHtml = await wrapEmailContent(personalizedContent)
+
+        // Replace merge tags in subject and final HTML
         const personalizedSubject = replaceMergeTags(execution.step.subject, mergeData)
-        const personalizedHtml = replaceMergeTags(execution.step.htmlContent, mergeData)
+        const personalizedHtml = replaceMergeTags(wrappedHtml, mergeData)
         const personalizedText = replaceMergeTags(execution.step.textContent, mergeData)
 
         // Send email

@@ -10,6 +10,7 @@ import { db } from '@/lib/db'
 import { sendEmail, stripHtml } from '@/lib/email'
 import { generateTrackingId } from '@/lib/utils'
 import { replaceMergeTags, getUserMergeTagData } from '@/lib/merge-tags'
+import { wrapEmailContent } from '@/lib/email-template'
 
 export async function POST(request: NextRequest) {
   try {
@@ -90,9 +91,15 @@ export async function POST(request: NextRequest) {
           process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
         )
 
-        // Replace merge tags in subject and content
+        // Replace merge tags in content
+        const personalizedContent = replaceMergeTags(htmlContent, mergeData)
+
+        // Wrap content with header/footer template
+        const wrappedHtml = await wrapEmailContent(personalizedContent)
+
+        // Replace merge tags in subject and final HTML
         const personalizedSubject = replaceMergeTags(subject, mergeData)
-        const personalizedHtml = replaceMergeTags(htmlContent, mergeData)
+        const personalizedHtml = replaceMergeTags(wrappedHtml, mergeData)
         const personalizedText = replaceMergeTags(stripHtml(htmlContent), mergeData)
 
         // Send email with personalized content
