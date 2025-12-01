@@ -13,7 +13,7 @@ const DEFAULT_HEADER = `
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
+    .email-wrapper {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       line-height: 1.6;
       color: #2C2D2C;
@@ -96,7 +96,8 @@ const DEFAULT_HEADER = `
   </style>
 </head>
 <body>
-  <div class="email-container">
+  <div class="email-wrapper">
+    <div class="email-container">
     <div class="email-header">
       <h1>Think Lite<br>Eat Lite</h1>
       <p>Break Free from YoYo Dieting Forever</p>
@@ -121,6 +122,7 @@ const DEFAULT_FOOTER = `
         <a href="{{unsubscribeUrl}}" style="color: #2D5D4F; text-decoration: underline;">Unsubscribe</a>
       </p>
     </div>
+  </div>
   </div>
 </body>
 </html>
