@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { db } from '@/lib/db'
+import { triggerFlow } from '@/lib/flows'
 
 export const dynamic = 'force-dynamic'
 
@@ -113,6 +114,7 @@ export async function POST(
       : 0
 
     // Update course enrollment progress
+    const wasCompleted = enrollment.completed
     await db.courseEnrollment.update({
       where: {
         userId_courseId: {
@@ -126,6 +128,26 @@ export async function POST(
         completedAt: progressPercentage === 100 ? new Date() : null
       }
     })
+
+    // Trigger lesson completion flow
+    if (completed) {
+      try {
+        await triggerFlow(session.user.id, 'lesson_completion')
+        console.log(`Triggered lesson_completion flows for user: ${session.user.id}`)
+      } catch (flowError) {
+        console.error('Error triggering lesson completion flows:', flowError)
+      }
+    }
+
+    // Trigger course completion flow (only once when course is completed)
+    if (progressPercentage === 100 && !wasCompleted) {
+      try {
+        await triggerFlow(session.user.id, 'course_completion')
+        console.log(`Triggered course_completion flows for user: ${session.user.id}`)
+      } catch (flowError) {
+        console.error('Error triggering course completion flows:', flowError)
+      }
+    }
 
     return NextResponse.json({
       success: true,

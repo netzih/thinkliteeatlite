@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { db } from '@/lib/db'
+import { triggerFlow } from '@/lib/flows'
 
 export async function POST(
   request: NextRequest,
@@ -59,6 +60,14 @@ export async function POST(
           completed: false
         }
       })
+
+      // Trigger course enrollment email flows
+      try {
+        await triggerFlow(session.user.id, 'course_enrollment')
+        console.log(`Triggered course_enrollment flows for user: ${session.user.id}`)
+      } catch (flowError) {
+        console.error('Error triggering enrollment flows:', flowError)
+      }
 
       return NextResponse.json({
         success: true,
