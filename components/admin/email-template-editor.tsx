@@ -46,6 +46,7 @@ export default function EmailTemplateEditor() {
     readonly: false,
     placeholder: 'Enter HTML code...',
     minHeight: 400,
+    width: '100%',
     useSearch: false,
     spellcheck: false,
     showCharsCounter: false,
@@ -146,12 +147,14 @@ export default function EmailTemplateEditor() {
           </div>
         </div>
 
-        <JoditEditor
-          ref={headerEditorRef}
-          value={header}
-          config={editorConfig}
-          onBlur={(content) => setHeader(content)}
-        />
+        <div className="w-full">
+          <JoditEditor
+            ref={headerEditorRef}
+            value={header}
+            config={editorConfig}
+            onBlur={(content) => setHeader(content)}
+          />
+        </div>
       </Card>
 
       <Card className="p-6">
@@ -162,12 +165,14 @@ export default function EmailTemplateEditor() {
           </div>
         </div>
 
-        <JoditEditor
-          ref={footerEditorRef}
-          value={footer}
-          config={editorConfig}
-          onBlur={(content) => setFooter(content)}
-        />
+        <div className="w-full">
+          <JoditEditor
+            ref={footerEditorRef}
+            value={footer}
+            config={editorConfig}
+            onBlur={(content) => setFooter(content)}
+          />
+        </div>
       </Card>
 
       <Card className="p-6">
