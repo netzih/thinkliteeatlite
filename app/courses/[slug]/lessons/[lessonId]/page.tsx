@@ -11,6 +11,7 @@ import { authOptions } from '@/lib/auth/config'
 import { db } from '@/lib/db'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { MarkCompleteButton } from '@/components/course/mark-complete-button'
 import { ChevronLeft, ChevronRight, Download, FileText, Music, Image as ImageIcon, File } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -45,6 +46,18 @@ async function checkEnrollment(userId: string, courseId: string) {
     }
   })
   return enrollment
+}
+
+async function getLessonProgress(userId: string, lessonId: string) {
+  const progress = await db.lessonProgress.findUnique({
+    where: {
+      userId_lessonId: {
+        userId,
+        lessonId
+      }
+    }
+  })
+  return progress
 }
 
 // Helper to get resource icon
@@ -98,6 +111,10 @@ export default async function LessonPlayerPage({
       redirect(`/courses/${course.slug}`)
     }
   }
+
+  // Get lesson progress
+  const lessonProgress = await getLessonProgress(session.user.id, lesson.id)
+  const isCompleted = lessonProgress?.completed || false
 
   // Find previous and next lessons
   const currentLessonIndex = currentModule.lessons.findIndex(l => l.id === lesson.id)
@@ -236,12 +253,10 @@ export default async function LessonPlayerPage({
             <div></div>
           )}
 
-          <Button
-            variant="outline"
-            className="border-brand-forest text-brand-forest hover:bg-brand-forest hover:text-white"
-          >
-            Mark as Complete
-          </Button>
+          <MarkCompleteButton
+            lessonId={lesson.id}
+            initialCompleted={isCompleted}
+          />
 
           {nextLesson ? (
             <Link href={`/courses/${course.slug}/lessons/${nextLesson.id}`}>

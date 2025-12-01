@@ -124,6 +124,33 @@ export default async function CourseDetailPage({
         </div>
       </section>
 
+      {/* Progress Section (for enrolled users) */}
+      {isEnrolled && enrollment && (
+        <section className="container mx-auto px-4 pb-6 max-w-4xl">
+          <Card className="p-6 bg-gradient-to-r from-brand-sage/10 to-brand-teal/10 border-brand-sage/30">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-brand-charcoal">Your Progress</h3>
+                <p className="text-sm text-gray-600">
+                  {enrollment.completed ? 'Course completed! 🎉' : 'Keep going!'}
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold text-brand-forest">{enrollment.progress}%</div>
+                <div className="text-sm text-gray-600">Complete</div>
+              </div>
+            </div>
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-brand-forest to-brand-teal h-full rounded-full transition-all duration-500"
+                style={{ width: `${enrollment.progress}%` }}
+              />
+            </div>
+          </Card>
+        </section>
+      )}
+
       {/* Course Content */}
       <section className="container mx-auto px-4 py-12 max-w-4xl">
         <h3 className="text-2xl font-crimson font-bold text-brand-charcoal mb-6">
