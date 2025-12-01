@@ -149,7 +149,7 @@ export default function EmailTemplateEditor() {
           </div>
         </div>
 
-        <div className="w-full">
+        <div className="w-full min-h-[400px]">
           <JoditEditor
             ref={headerEditorRef}
             value={header}
@@ -167,7 +167,7 @@ export default function EmailTemplateEditor() {
           </div>
         </div>
 
-        <div className="w-full">
+        <div className="w-full min-h-[400px]">
           <JoditEditor
             ref={footerEditorRef}
             value={footer}
